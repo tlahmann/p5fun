@@ -17,7 +17,8 @@ function draw () {
 
     noStroke();
     fill(size.height - mouseY / 2, 100, 100);
-    rect(size.width / 2, size.height / 2, mouseX + 1, mouseX + 1);
+    let d = int(dist(size.width / 2, size.height / 2, mouseX, mouseY)) * 2;
+    rect(size.width / 2, size.height / 2, d, d);
     stroke(0, 0, 0);
     line(mouseX, mouseY - 10, mouseX, mouseY + 10);
     line(mouseX - 10, mouseY, mouseX + 10, mouseY);
