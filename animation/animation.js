@@ -17,6 +17,9 @@ var sizeMode = 0;
 // Audio
 var mySound;
 
+// Animated values must be an object
+let angle = {r: 0};
+
 function preload () {
   shapes = [];
   shapes.push(loadImage('data/shape1.svg'));
@@ -34,11 +37,20 @@ function setup () {
   tileHeight = height / tileCount;
   maxDist = sqrt(pow(width, 2) + pow(height, 2));
   mySound.setVolume(0.1);
+  mySound.playMode('sustain');
   mySound.loop();
+  mySound.pause();
+
+  new TWEEN.Tween(angle) // Create a new tween that modifies 'coords'.
+    .to({r: 360}, mySound.duration() * 1000) // Move to (300, 200) in 1 second.
+    .repeat(Infinity)
+    .easing(TWEEN.Easing.Quadratic.Out)
+    .start();
 }
 
 function draw () {
   clear();
+  TWEEN.update(mySound.currentTime() * 1000);
 
   for (var gridY = 0; gridY < tileCount; gridY++) {
     for (var gridX = 0; gridX < tileCount; gridX++) {
@@ -46,8 +58,7 @@ function draw () {
       var posX = tileWidth * gridX + tileWidth / 2;
       var posY = tileHeight * gridY + tileWidth / 2;
 
-      // calculate angle between mouse position and actual position of the shape
-      var angle = atan2(mouseY - posY, mouseX - posX) + (shapeAngle * (PI / 180));
+      var a = radians(angle.r);
 
       if (sizeMode == 0) newShapeSize = shapeSize;
       if (sizeMode == 1) newShapeSize = shapeSize * 1.5 - map(dist(mouseX, mouseY, posX, posY), 0, 500, 5, shapeSize);
@@ -55,7 +66,7 @@ function draw () {
 
       push();
       translate(posX, posY);
-      rotate(angle);
+      rotate(a);
       noStroke();
       image(currentShape, 0, 0, newShapeSize, newShapeSize * 2);
       pop();
@@ -64,18 +75,15 @@ function draw () {
 }
 
 function keyReleased () {
-  if (key == 's' || key == 'S') saveCanvas(gd.timestamp(), 'png');
-  if (key == 'd' || key == 'D') sizeMode = (sizeMode + 1) % 3;
-  if (key == 'g' || key == 'G') {
-    tileCount += 5;
-    if (tileCount > 20) {
-      tileCount = 10;
+  if (key == ' ') {
+    // TODO: When resuming the sound it should always be resumed at the position paused previously
+    // Right now it sometimes restarts
+    if (mySound.isPaused() || !mySound.isPlaying()) {
+      mySound.loop();
+    } else {
+      mySound.pause();
     }
-    tileWidth = width / tileCount;
-    tileHeight = height / tileCount;
   }
-
-  if (key == '1') currentShape = shapes[0];
 
   if (keyCode == UP_ARROW) shapeSize += 5;
   if (keyCode == DOWN_ARROW) shapeSize = max(shapeSize - 5, 5);
